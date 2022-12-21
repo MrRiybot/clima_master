@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:clima_master/services/networking.dart';
 import 'package:flutter/material.dart';
 import 'package:clima_master/services/location.dart';
+import 'package:clima_master/services/networking.dart';
 import 'package:http/http.dart' as http;
 
 class LoadingScreen extends StatefulWidget {
@@ -10,34 +12,22 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  void initState() {
-    super.initState();
-    getLocation();
-  }
+  String latitude;
+  String longitude;
 
-  void getLocation() async {
+  void getLocationData() async {
     Location location = Location();
     await location.getLocation();
-    print(location.latitude);
-    print(location.longitude);
+    latitude = location.latitude.toStringAsFixed(2);
+    longitude = location.longitude.toStringAsFixed(2);
+    String url =
+        'https://api.open-meteo.com/v1/forecast?latitude=12.1&longitude=12.123&current_weather=true';
+    NetworkHelper networkHelper = NetworkHelper(url);
+    var data = await networkHelper.getData();
+    print(data['current_weather']['temperature']);
+    print(data['current_weather']['weathercode']);
   }
 
-  void getData() async {
-    try {
-      http.Response response = await http.get(Uri.parse(
-          'https://api.open-meteo.com/v1/forecast?latitude=24.86&longitude=46.63&current_weather=true'));
-      if (response.statusCode == 200) {
-        String data = response.body;
-        double temp = jsonDecode(data)['current_weather']['temperature'];
-        var weathercode = jsonDecode(data)['current_weather']['weathercode'];
-        print(weathercode);
-      }
-      else
-        print(response.statusCode);
-    } catch (e) {
-      print(e);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +35,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       body: Center(
         child: TextButton(
           onPressed: () {
-            getData();
+            getLocationData();
           },
           child: Text("get location"),
         ),
